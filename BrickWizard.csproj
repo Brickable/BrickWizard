@@ -40,13 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IWorkflow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Wizard.cs" />
     <Compile Include="Tab.cs" />
     <Compile Include="Step.cs" />
     <Compile Include="WizardModelBaseClass.cs" />
-    <Compile Include="Workflow.cs" />
     <Compile Include="Route.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
