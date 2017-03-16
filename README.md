@@ -2,7 +2,7 @@
 
 
 #Library Role
-Brick Wizard is C# class library mainly  targeted for ASP.NET MVC apps with a simple and pragmatic approach
+Brick Wizard is C sharp class library mainly  targeted for ASP.NET MVC apps with a simple and pragmatic approach
 to deal with wise sequential step Forms that may require flow control  between steps. 
 Rather than a complex implementation, Brick wizard rely on a set of conventions that allow you to make simple controllers
  and avoid extra complexity on your views.
