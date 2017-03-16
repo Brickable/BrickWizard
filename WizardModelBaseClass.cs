@@ -7,5 +7,6 @@ namespace BrickWizard
         public List<Tab> NavBar { get; set; }
         public Step PreviousStep { get; set; }
         public string ActionName { get; set; }
+        public int MaxNavSteps { get; set; }
     }
 }

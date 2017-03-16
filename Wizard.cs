@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,22 +10,13 @@ namespace BrickWizard
     {
         public Wizard()
         {
-            if (DefaultRoutes == null || !DefaultRoutes.Any())
-                throw new FieldAccessException("The Routes collection must be instanciated in InitializeRoute method");
-            Routes = DefaultRoutes;
-            var currentRoutes = Routes.Where(x => x.Current);
-            if (currentRoutes.Any())
-                throw new FieldAccessException("You cannot define Current Route in DefaultRoutes");
-            var allCurrentSteps = currentRoutes.SelectMany(x => x.Steps.Where(z => z.Current));
-            if (currentRoutes.Any())
-                throw new FieldAccessException("You cannot define Current Steps in DefaultRoutes");
-            WizardInit();
             BaseModelSync();
         }
 
         protected abstract void Orchestrate();
-        protected abstract List<Route> DefaultRoutes { get; }
+        protected abstract Map Map { get; }
         protected abstract List<string> TriggerPoints { get; }
+        protected abstract int MaxNavSteps { get; }
 
         public void Sync<T1>(T1 obj)
         {
@@ -78,53 +70,24 @@ namespace BrickWizard
         }
 
         public T Model { get; set; } = new T();
-        public List<Tab> NavBar
-        {
-            get
-            {
-                var NavBar = new List<Tab>();
+        public Route CurrentRoute => Map.CurrentRoute;
+        public Step CurrentStep => Map.CurrentStep;
+        private List<Tab> NavBar => CurrentRoute.Steps.GetNavBar();
 
-                CurrentRoute.Steps.ForEach(x =>
-                    NavBar.Add(
-                    new Tab
-                    {
-                        Current = x.Current,
-                        Name = x.Name,
-                        Number = x.StepNumber,
-                        Action = x.ActionName
-                    }));
-                return NavBar;
-            }
-        }
-        public Route CurrentRoute => Routes.FirstOrDefault(x => x.Current);
-        public Step CurrentStep => CurrentRoute.CurrentStep;
-
-        private bool MoonWalkPerformed { get; set; }
         protected bool IsTriggerPointStep => TriggerPoints.Exists(x => x == CurrentRoute.CurrentStep.ActionName);
-        protected List<Route> Routes { get; private set; }
-        protected bool TryMoveNextStep() { return CurrentRoute.TryMoveStep(); }
+        protected bool TryMoveNextStep() => Map.TryMoveNextStep();
         protected void FollowTheRoute(int routeId)
         {
-            if (CurrentRoute.RouteId == routeId)
-            {
-                TryMoveNextStep();
-                return;
-            }
-            var currentStep = CurrentStep;
-            var routeToJump = Routes.First(x => x.RouteId == routeId);
-            Routes.ForEach(x => x.Current = false);
-            routeToJump.Current = true;
-            routeToJump.Steps.ForEach(x => x.Current = false);
-            routeToJump.Steps.First(x => x.ActionName == currentStep.ActionName).Current = true;
-            CurrentRoute.TryMoveStep();
+            Map.FollowTheRoute( routeId);
         }
-
-        private bool TryMovePreviousStep() { return CurrentRoute.TryBackStep(); }
+        
+        private bool MoonWalkPerformed { get; set; }
+        private bool TryMovePreviousStep() { return CurrentRoute.Steps.TryBackStep(); }
         private void BaseModelSync()
         {
             Model.NavBar = NavBar;
             Model.ActionName = CurrentRoute.CurrentStep.ActionName;
-            Model.PreviousStep = CurrentRoute.PreviousStep;
+            Model.PreviousStep = CurrentRoute.Steps.PreviousStep;
         }
         private void MoonWalkTill(string methodName)
         {
@@ -133,12 +96,6 @@ namespace BrickWizard
                 if (!TryMovePreviousStep())
                     break;
             }
-        }
-        private void WizardInit()
-        {
-            var current = Routes.First();
-            current.Current = true;
-            current.Steps.First().Current = true;
         }
     }
 }
