@@ -1,14 +1,12 @@
 ![logo](http://oi65.tinypic.com/2ibivxf.jpg)
-
-
-#Library Role
-Brick Wizard is C sharp class library mainly  targeted for ASP.NET MVC apps with a simple and pragmatic approach
+# Library Role#
+Brick Wizard is C# class library mainly  targeted for ASP.NET MVC apps with a simple and pragmatic approach
 to deal with wise sequential step Forms that may require flow control  between steps. 
 Rather than a complex implementation, Brick wizard rely on a set of conventions that allow you to make simple controllers
  and avoid extra complexity on your views.
 
-#Core brick wizard engine Concepts 
-##The Library have 5 main concepts (Classes): 
+# Core brick wizard engine Concepts# 
+## The Library have 5 main concepts (Classes): ##
 - Wizard 
 - Map 
 - Route 
@@ -25,7 +23,7 @@ For each wizard type you want to create, you need to define one class that inher
 The Wizard abstract class provide you all implementation for except a few abstract methods/Properties that you need to override. 
 This abstract concepts will be specific of your own wizard . So...you need to do it by yourself off course :p  
 
-#Credits 
+# Credits# 
 - wizard face from logo downloaded at [game-icons.net] (http://game-icons.net/delapouite/originals/wizard-face.html) by [Delapouite] (http://delapouite.com) 
 
 
