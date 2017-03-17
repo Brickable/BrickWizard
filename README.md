@@ -7,7 +7,7 @@ Rather than a complex implementation, Brick wizard rely on a set of conventions 
  and avoid extra complexity on your views.
 
 # Core brick wizard engine Concepts
-## The Library have 5 main concepts (Classes): 
+### The Library have 5 main concepts (Classes): 
 - Wizard 
 - Map 
 - Route 
@@ -25,6 +25,10 @@ The Wizard abstract class provide you all implementation for except a few abstra
 This abstract concepts will be specific of your own wizard . So...you need to do it by yourself off course :p  
 
 # Credits
-- wizard face from logo downloaded at [game-icons.net] (http://game-icons.net/delapouite/originals/wizard-face.html) by [Delapouite] (http://delapouite.com) 
+- wizard face from logo downloaded from [Game-icons.net](http://game-icons.net/delapouite/originals/wizard-face.html) 
+and designed by [Delapouite](http://delapouite.com) 
+
+
+
 
 
