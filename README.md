@@ -8,12 +8,12 @@ to deal with wise sequential step Forms that may require flow control  between s
 Rather than a complex implementation, Brick wizard rely on a set of conventions that allow you to make simple controllers
  and avoid extra complexity on your views.
 
-- [NuGet Package](https://www.nuget.org/)
+- [NuGet Package](https://github.com/404)
 - [Documentation](https://github.com/Brickable/BrickWizard/wiki)
   - [Getting Started](https://github.com/Brickable/BrickWizard/wiki)
   - [Dummy example](https://github.com/Brickable/BrickWizard/wiki/Dummy-scenario-Implementation)
-  - [Demo Project](https://www.google.pt/404)
-- [Release Notes](https://www.google.pt/404)
+  - [Demo Project](https://github.com/404)
+- [Release Notes](https://github.com/404)
 - [Contributing Guidelines](CONTRIBUTING.md)
 - [License](LICENSE.md)
 
