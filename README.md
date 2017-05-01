@@ -1,20 +1,20 @@
-#Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+![logo](http://oi65.tinypic.com/2ibivxf.jpg)
 
-#Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+### (Under development)
+- [NuGet Package](https://github.com/404)
+- [Documentation](https://github.com/Brickable/BrickWizard/wiki)
+  - [Getting Started](https://github.com/Brickable/BrickWizard/wiki)
+  - [Dummy example](https://github.com/Brickable/BrickWizard/wiki/Dummy-scenario-Implementation)
+  - [Demo Project](https://github.com/404)
+- [Release Notes](https://github.com/404)
+- [Contributing Guidelines](CONTRIBUTING.md)
+- [License](LICENSE.md)
 
-#Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+# Credits
+- wizard face from logo downloaded from [Game-icons.net](http://game-icons.net/delapouite/originals/wizard-face.html) 
+and designed by [Delapouite](http://delapouite.com) 
 
-#Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://www.visualstudio.com/en-us/docs/git/create-a-readme). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+
+
+
