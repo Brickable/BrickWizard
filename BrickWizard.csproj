@@ -41,7 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Map.cs" />
+    <Compile Include="NavBar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StepReference.cs" />
     <Compile Include="Steps.cs" />
     <Compile Include="Wizard.cs" />
     <Compile Include="Tab.cs" />
