@@ -10,12 +10,14 @@ namespace BrickWizard
 {
     public abstract class Wizard<T> where T : WizardModelBaseClass, new()
     {
-        public Wizard()
+        protected Wizard(string controllerName)
         {
+            _controllerName = controllerName;
             _steps = Steps;
             _map = Map;
             BaseModelSync();
         }
+        private string _controllerName { get;}
 
         private Steps _steps { get; set; }
         private Map _map { get; set; }
@@ -32,7 +34,7 @@ namespace BrickWizard
             }
         }
 
-        protected abstract int MaxTabs { get; }
+        protected virtual int MaxTabs { get; } = 5;
         protected abstract Steps Steps { get; }
         protected abstract Map Map { get; }
         
@@ -55,7 +57,7 @@ namespace BrickWizard
                 MoonWalkPerformed = true;
                 MoonWalkTill(callerMethodName);
             }
-            else if (callerMethodName == currentStep)
+            else
             {
                 MoonWalkPerformed = (obj == null);
                 if (obj != null)
@@ -83,7 +85,7 @@ namespace BrickWizard
                 MoonWalkTill(callerMethodName);
             }
 
-            else if (callerMethodName == currentStep)
+            else
             {
                 MoonWalkPerformed = (objs == null || objs.Length == 0);
                 if (objs != null && objs.Length > 0)
@@ -192,6 +194,7 @@ namespace BrickWizard
             Model.NavBar = GetNavBar();
             Model.ActionName = CurrentStep.ActionName;
             Model.PreviousStep = PreviousStep;
+            Model.ControllerName = _controllerName;
         }
         private void MoonWalkTill(string methodName)
         {
