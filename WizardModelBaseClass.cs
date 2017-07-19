@@ -1,11 +1,17 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace BrickWizard
 {
     public abstract class WizardModelBaseClass
     {
-        public NavBar NavBar { get; set; }
-        public Step PreviousStep { get; set; }
-        public string ActionName { get; set; }
+        [IgnoreDataMember]
+        public NavBar NavBar { get; internal set; }
+        [IgnoreDataMember]
+        public Step PreviousStep { get; internal set; }
+        [IgnoreDataMember]
+        public string ActionName { get; internal set; }
+        [IgnoreDataMember]
+        public string ControllerName { get; internal set; }
     }
 }
