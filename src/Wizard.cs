@@ -10,14 +10,16 @@ namespace BrickWizard
 {
     public abstract class Wizard<T> where T : WizardModelBaseClass, new()
     {
-        protected Wizard(string controllerName)
+        protected Wizard(string controllerName,string areaName="")
         {
             _controllerName = controllerName;
+            _areaName = areaName;
             _steps = Steps;
             _map = Map;
             BaseModelSync();
         }
         private string _controllerName { get;}
+        private string _areaName { get; }
 
         private Steps _steps { get; set; }
         private Map _map { get; set; }
@@ -187,14 +189,15 @@ namespace BrickWizard
                 });
             }
             var maxTabs = (MaxTabs >= CurrentRoute.Lenght) ? MaxTabs : CurrentRoute.Lenght;
-            return new NavBar(maxTabs, navBarList);
+            return new NavBar(maxTabs, navBarList,_controllerName,_areaName);
         }
         private void BaseModelSync()
         {
-            Model.NavBar = GetNavBar();
-            Model.ActionName = CurrentStep.ActionName;
-            Model.PreviousStep = PreviousStep;
-            Model.ControllerName = _controllerName;
+            this.Model.NavBar = GetNavBar();
+            this.Model.ActionName = CurrentStep.ActionName;
+            this.Model.PreviousStep = PreviousStep;
+            this.Model.ControllerName = _controllerName;
+            this.Model.AreaName = _areaName;
         }
         private void MoonWalkTill(string methodName)
         {

@@ -13,5 +13,7 @@ namespace BrickWizard
         public string ActionName { get; internal set; }
         [IgnoreDataMember]
         public string ControllerName { get; internal set; }
+        [IgnoreDataMember]
+        public string AreaName { get; internal set; }
     }
 }
