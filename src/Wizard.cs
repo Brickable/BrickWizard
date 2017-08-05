@@ -10,7 +10,7 @@ namespace BrickWizard
 {
     public abstract class Wizard<T> where T : WizardModelBaseClass, new()
     {
-        protected Wizard(string controllerName,string areaName="")
+        protected Wizard(string controllerName, string areaName = "")
         {
             _controllerName = controllerName;
             _areaName = areaName;
@@ -18,7 +18,7 @@ namespace BrickWizard
             _map = Map;
             BaseModelSync();
         }
-        private string _controllerName { get;}
+        private string _controllerName { get; }
         private string _areaName { get; }
 
         private Steps _steps { get; set; }
@@ -39,7 +39,7 @@ namespace BrickWizard
         protected virtual int MaxTabs { get; } = 5;
         protected abstract Steps Steps { get; }
         protected abstract Map Map { get; }
-        
+
         public Route CurrentRoute => _map.CurrentRoute;
         public Steps CurrentRouteSteps => new Steps(_currentRouteSteps);
         public Step CurrentStep => _steps.Current;
@@ -142,7 +142,7 @@ namespace BrickWizard
         }
         private bool IsTriggerPointStep => CurrentStep.TriggerPointRule != null;
         private bool MoonWalkPerformed { get; set; }
-        private void CleanRoutes()=> _map.Routes.ForEach(x => x.Current = false);
+        private void CleanRoutes() => _map.Routes.ForEach(x => x.Current = false);
         private void FollowTheRoute(int routeId)
         {
             if (CurrentRoute.RouteId == routeId)
@@ -169,12 +169,60 @@ namespace BrickWizard
                 FollowTheRoute(CurrentStep.TriggerPointRule.Invoke());
             }
         }
+        private List<StepReference> StepsToShow()
+        {
+            if (CurrentRoute.Lenght <= MaxTabs)
+            {
+                return CurrentRoute.RouteSteps;
+            }
+            else
+            {
+                var stepsToShow = new List<StepReference>();
+                int i = GetNavBarStatingPointIndex();
+                var stepsTaken = 0;
+                while (stepsTaken < MaxTabs)
+                {
+                    stepsToShow.Add(CurrentRoute.RouteSteps[i]);
+                    stepsTaken++;
+                    i++;
+                }
+                return stepsToShow;
+            }
+        }
+
+        private int GetNavBarStatingPointIndex()
+        {
+            var currentStep = CurrentRoute.RouteSteps.FirstOrDefault(x => x.ActionName == CurrentStep.ActionName);
+            var lastStep = CurrentRoute.RouteSteps.Last();
+
+            var currentStepIndex = CurrentRoute.RouteSteps.IndexOf(currentStep);
+            var lastStepIndex = CurrentRoute.RouteSteps.IndexOf(lastStep);
+            var middleIndex = Convert.ToInt16(MaxTabs / 2) + 1;
+
+            //Navbar has 3 behaviors: {GoingTowardsMiddle, Rolling, GoingTowardsEnd}
+            var GoingTowardsEnd = currentStepIndex + middleIndex > lastStepIndex;
+            var GoingTowardsMiddle = currentStepIndex < middleIndex;
+
+            if (GoingTowardsEnd)
+            {
+                return lastStepIndex - (MaxTabs-1);
+            }
+            else if (GoingTowardsMiddle)
+            {
+                return 0;
+            }
+            else
+            {
+                return currentStepIndex - (middleIndex-1);
+            }
+        }
+
         private NavBar GetNavBar()
         {
             var navBarList = new List<Tab>();
             var currentStepNumber = CurrentRoute.RouteSteps.FirstOrDefault(x => x.ActionName == CurrentStep.ActionName).StepNumber;
 
-            foreach (var i in CurrentRoute.RouteSteps)
+            foreach (var i in StepsToShow())
             {
                 var step = _steps.GetStepByActionName(i.ActionName);
                 navBarList.Add(
@@ -189,7 +237,7 @@ namespace BrickWizard
                 });
             }
             var maxTabs = (MaxTabs >= CurrentRoute.Lenght) ? MaxTabs : CurrentRoute.Lenght;
-            return new NavBar(maxTabs, navBarList,_controllerName,_areaName);
+            return new NavBar(maxTabs, navBarList, _controllerName, _areaName);
         }
         private void BaseModelSync()
         {
