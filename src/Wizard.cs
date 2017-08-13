@@ -243,7 +243,7 @@ namespace BrickWizard
         {
             this.Model.NavBar = GetNavBar();
             this.Model.ActionName = CurrentStep.ActionName;
-            this.Model.PreviousStep = PreviousStep;
+            this.Model.PreviousStepActionName = PreviousStep?.ActionName;
             this.Model.ControllerName = _controllerName;
             this.Model.AreaName = _areaName;
         }

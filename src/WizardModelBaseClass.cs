@@ -5,15 +5,10 @@ namespace BrickWizard
 {
     public abstract class WizardModelBaseClass
     {
-        [IgnoreDataMember]
         public NavBar NavBar { get; internal set; }
-        [IgnoreDataMember]
-        public Step PreviousStep { get; internal set; }
-        [IgnoreDataMember]
+        public string PreviousStepActionName { get; internal set; }
         public string ActionName { get; internal set; }
-        [IgnoreDataMember]
         public string ControllerName { get; internal set; }
-        [IgnoreDataMember]
         public string AreaName { get; internal set; }
     }
 }
