@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace BrickWizard
 {
-    public abstract class Wizard<T> where T : WizardModelBaseClass, new()
+    public abstract class Wizard<T> : IWizard<T> where T : WizardModelBaseClass, new()
     {
         protected Wizard(string controllerName, string areaName = "")
         {
@@ -225,6 +225,10 @@ namespace BrickWizard
             foreach (var i in StepsToShow())
             {
                 var step = _steps.GetStepByActionName(i.ActionName);
+
+                var pastTabRule = i.StepNumber <= currentStepNumber;
+                var blockPastTabRule = i.DisableStepAfter > 0 && currentStepNumber > i.DisableStepAfter;
+
                 navBarList.Add(
                 new Tab
                 {
@@ -233,7 +237,7 @@ namespace BrickWizard
                     Number = i.StepNumber,
                     Action = step.ActionName,
                     Description = step.Description,
-                    Enable = (i.StepNumber <= currentStepNumber) ? true : false
+                    Enable = (pastTabRule && !blockPastTabRule) ? true : false
                 });
             }
             var maxTabs = (MaxTabs >= CurrentRoute.Lenght) ? MaxTabs : CurrentRoute.Lenght;
