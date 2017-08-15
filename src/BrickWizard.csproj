@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IWizard.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="NavBar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
