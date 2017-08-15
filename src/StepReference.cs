@@ -2,14 +2,14 @@
 {
     public class StepReference
     {
-        public StepReference(string actionName, int stepNumber, int disableStepAfter=-1)
+        public StepReference(string actionName, int disableStepAfter=-1)
         {
             ActionName = actionName;
-            StepNumber = stepNumber;
+            //StepNumber = stepNumber;
             DisableStepAfter = disableStepAfter;
         }
         internal string ActionName { get; }
         public int StepNumber { get; set; }
-        public int DisableStepAfter { get; set; }
+        public int DisableStepAfter { get;}
     }
 }
