@@ -17,8 +17,6 @@ namespace BrickWizard
         internal Step Current => steps.FirstOrDefault(x => x.Current);
         internal Step GetStepByActionName(string actionName) => steps.Find(x => x.ActionName == actionName);
 
-        internal Steps FreezeSteps(string[] frozenSteps) => new Steps(steps.Where(x => !frozenSteps.Contains(x.ActionName)).ToList());
-
         internal void CleanSteps()
         {
             steps.ForEach(x => x.Current = false);

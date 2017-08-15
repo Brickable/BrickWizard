@@ -20,14 +20,5 @@ namespace BrickWizard
         internal Route CurrentRoute => Routes.FirstOrDefault(x => x.Current);
         internal Route GetRoute(int routeId) => Routes.First(x => x.RouteId == routeId);
 
-        internal Map FreezeSteps(string[] frozenSteps)
-        {
-            var routes = new List<Route>();
-            foreach(var route in Routes)
-            {
-                routes.Add(new Route(route.RouteId, route.RouteSteps.Where(x => !frozenSteps.Contains(x.ActionName)).ToList()));
-            }
-            return new Map(routes);
-        }
     }
 }

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using BrickWizard.ExtensionMethods;
 
 namespace BrickWizard
 {
@@ -14,8 +15,8 @@ namespace BrickWizard
         {
             _controllerName = controllerName;
             _areaName = areaName;
-            _steps = (frozenSteps==null)? Steps : Steps.FreezeSteps(frozenSteps);
-            _map = (frozenSteps == null) ? Map: Map.FreezeSteps(frozenSteps);
+            _steps = (frozenSteps == null) ? Steps : Steps.FreezeSteps(frozenSteps);
+            _map = (frozenSteps == null) ? Map : Map.FreezeSteps(frozenSteps);
             BaseModelSync();
         }
         private string _controllerName { get; }
