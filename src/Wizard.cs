@@ -44,6 +44,8 @@ namespace BrickWizard
         public Route CurrentRoute => _map.CurrentRoute;
         public Steps CurrentRouteSteps => new Steps(_currentRouteSteps);
         public Step CurrentStep => _steps.Current;
+        public bool IsStepAvailable(string stepActionName)=> _steps.steps.Any(x => x.ActionName == stepActionName);
+
         public T Model { get; set; } = new T();
         /// <summary>
         /// Command that refresh the Model properties depending which object(s) you pass into. Analize your current wizard object state and decide what should be the next "move".
