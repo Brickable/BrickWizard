@@ -10,12 +10,12 @@ namespace BrickWizard
 {
     public abstract class Wizard<T> where T : WizardModelBaseClass, new()
     {
-        protected Wizard(string controllerName, string areaName = "")
+        protected Wizard(string controllerName, string areaName = "", string[] frozenSteps = null)
         {
             _controllerName = controllerName;
             _areaName = areaName;
-            _steps = Steps;
-            _map = Map;
+            _steps = (frozenSteps==null)? Steps : Steps.FreezeSteps(frozenSteps);
+            _map = (frozenSteps == null) ? Map: Map.FreezeSteps(frozenSteps);
             BaseModelSync();
         }
         private string _controllerName { get; }
