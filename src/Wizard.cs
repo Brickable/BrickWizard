@@ -19,6 +19,18 @@ namespace BrickWizard
             _map = (frozenSteps == null) ? Map : Map.FreezeSteps(frozenSteps);
             BaseModelSync();
         }
+        protected Wizard(string controllerName, int startAtRouteId, string startAtStepActionName, string areaName = "", string[] frozenSteps = null)
+        {
+            _controllerName = controllerName;
+            _areaName = areaName;
+            _steps = (frozenSteps == null) ? Steps : Steps.FreezeSteps(frozenSteps);
+            _map = (frozenSteps == null) ? Map : Map.FreezeSteps(frozenSteps);
+            SetCoordinatesAt(startAtRouteId, startAtStepActionName);
+            BaseModelSync();
+        }
+
+        
+
         private string _controllerName { get; }
         private string _areaName { get; }
 
@@ -146,6 +158,16 @@ namespace BrickWizard
         private bool IsTriggerPointStep => CurrentStep.TriggerPointRule != null;
         private bool MoonWalkPerformed { get; set; }
         private void CleanRoutes() => _map.Routes.ForEach(x => x.Current = false);
+        private void SetCoordinatesAt(int routeId, string actionName)
+        {
+            SetCurrentRoute(routeId);
+            _steps.SetCurrentStep(actionName);
+        }
+        private void SetCurrentRoute(int routeId)
+        {
+            CleanRoutes();
+            _map.GetRoute(routeId).Current = true;
+        }
         private void FollowTheRoute(int routeId)
         {
             if (CurrentRoute.RouteId == routeId)
@@ -153,12 +175,7 @@ namespace BrickWizard
                 TryMoveNextStep();
                 return;
             }
-            var currentStep = CurrentStep;
-            var routeToJump = _map.GetRoute(routeId);
-            _steps.CleanSteps();
-            CleanRoutes();
-            routeToJump.Current = true;
-            _steps.SetCurrentStep(currentStep.ActionName);
+            SetCoordinatesAt(routeId, CurrentStep.ActionName);
             TryMoveNextStep();
         }
         private void Orchestrate()
@@ -250,6 +267,7 @@ namespace BrickWizard
         {
             this.Model.NavBar = GetNavBar();
             this.Model.ActionName = CurrentStep.ActionName;
+            this.Model.CurrentRouteId = CurrentRoute.RouteId;
             this.Model.PreviousStepActionName = PreviousStep?.ActionName;
             this.Model.ControllerName = _controllerName;
             this.Model.AreaName = _areaName;

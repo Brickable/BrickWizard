@@ -12,7 +12,8 @@ namespace BrickWizard
         public Map(List<Route> routes)
         {
             if (routes == null || !routes.Any())
-                throw new FieldAccessException("The Map must have at least one route");
+                throw new ArgumentException("The Map must have at least one route");
+            //check for unique Ids
             Routes = routes;
             Routes.First().Current = true;
         }
