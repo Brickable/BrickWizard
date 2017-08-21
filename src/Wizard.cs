@@ -63,19 +63,12 @@ namespace BrickWizard
         public T Model { get; set; } = new T();
 
         //PUBLIC COMMANDS
-        public void AutoSync()
+        public void Sync()=> Sync(new StackTrace().GetFrame(1).GetMethod().Name);
+        public void ForceCommit(params object[] objs)
         {
-            if (TryBackwardsMove(new StackTrace().GetFrame(1).GetMethod().Name))
-            {
-                MoveNext();
-            }            
-        }
-        public bool TryMoveBackwards() => TryBackwardsMove(new StackTrace().GetFrame(1).GetMethod().Name);
-        public void TryForceCommit(params object[] objs)
-        {
-            if (IsMoonWalkNeeded(new StackTrace().GetFrame(1).GetMethod().Name) && objs != null)
+            if (IsMoonWalkNeeded(new StackTrace().GetFrame(1).GetMethod().Name))
             {                
-                foreach (var obj in objs)
+                foreach (var obj in objs ?? Enumerable.Empty<object>())
                 {
                     var propertyInfo = typeof(T).GetProperties().First(x => x.PropertyType.FullName == obj.GetType().FullName);
                     var property = typeof(T).GetProperty(propertyInfo.Name);
@@ -83,49 +76,26 @@ namespace BrickWizard
                 }      
             }
         }
-        public void TryCommit(T model)
+        public void Commit(T model)
         {
             if (IsMoonWalkNeeded(new StackTrace().GetFrame(1).GetMethod().Name))
             {
                 foreach(var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
                 {
-
+                    var m = model.GetType().GetProperty(i).GetValue(model,null);
+                    typeof(T).GetProperty(i).SetValue(Model, m);
                 }
-
-                //foreach (var step in _steps.steps)
-                //{
-                //    if (_currentRouteSteps.FirstOrDefault(x => x.ActionName == step.ActionName) == null)
-                //    {
-                //        foreach (var prop in typeof(T).GetProperties())
-                //        {
-                //            foreach (var i in step.PropertiesToBind)
-                //            {
-                //                if (i.ToString() == prop.Name)
-                //                {
-                //                    var property = typeof(T).GetProperty(prop.Name);
-                //                    property.SetValue(Model, null);
-                //                }
-                //            }
-                //        }
-                //    }
-                //}
-                //foreach (var obj in objs)
-                //{
-                //    var propertyInfo = typeof(T).GetProperties().First(x => x.PropertyType.FullName == obj.GetType().FullName);
-                //    var property = typeof(T).GetProperty(propertyInfo.Name);
-                //    property.SetValue(Model, obj);
-                //}
             }
         }
-        public void CommitAndAutoSync(T model)
+        public void CommitAndSync(T model)
         {
-            TryCommit(model);
-            AutoSync();
+            Commit(model);
+            Sync(new StackTrace().GetFrame(1).GetMethod().Name);
         }
-        public void CommitAndAutoSync(params object[] objs)
+        public void CommitAndSync(params object[] objs)
         {
-            TryForceCommit(objs);
-            AutoSync();
+            ForceCommit(objs);
+            Sync(new StackTrace().GetFrame(1).GetMethod().Name);
         }
         public void ClearUnusedSteps()
         {
@@ -149,13 +119,21 @@ namespace BrickWizard
         }
 
         //PRIVATE MEMBERS & COMMANDS
+        private void Sync(string callerMethodName)
+        {
+            if (!TryBackwardsMove(callerMethodName))
+            {
+                MoveNext();
+            }
+            BaseModelSync();
+        }
+        private bool TryMoveBackwards() => TryBackwardsMove(new StackTrace().GetFrame(1).GetMethod().Name);
         private bool TryBackwardsMove(string callerMethodName)
         {
             var isMoonWalkNeeded = IsMoonWalkNeeded(callerMethodName);
             if (IsMoonWalkNeeded(callerMethodName))
             {
                 MoonWalkTill(callerMethodName);
-                BaseModelSync();
             }
             return isMoonWalkNeeded;
         }
