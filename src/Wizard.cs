@@ -30,7 +30,7 @@ namespace BrickWizard
             BaseModelSync();
         }
 
-        
+
         //PRIVATE FIELDS
         private string _controllerName { get; }
         private string _areaName { get; }
@@ -60,11 +60,11 @@ namespace BrickWizard
         public bool IsStepAvailable(string stepActionName) => _steps.steps.Any(x => x.ActionName == stepActionName);
         public Route CurrentRoute => _map.CurrentRoute;
         public Steps CurrentRouteSteps => new Steps(_currentRouteSteps);
-        public Step CurrentStep => _steps.Current;      
+        public Step CurrentStep => _steps.Current;
         public T Model { get; set; } = new T();
 
         //PUBLIC COMMANDS
-        public void Sync([CallerMemberName] string callerMemberName="")
+        public void Sync([CallerMemberName] string callerMemberName = "")
         {
             if (!TryMoonWalkMove(callerMemberName))
             {
@@ -137,7 +137,7 @@ namespace BrickWizard
                 }
             }
             return isMoonWalkNeeded;
-        }  
+        }
         public bool TryCommitAndSync(T model, [CallerMemberName] string callerMemberName = "")
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
@@ -159,8 +159,8 @@ namespace BrickWizard
             }
             Sync(callerMemberName);
             return isMoonWalkNeeded;
-        }     
-        public bool TryMoonWalking([CallerMemberName] string callerMemberName = "") => TryMoonWalkMove(callerMemberName,true);
+        }
+        public bool TryMoonWalking([CallerMemberName] string callerMemberName = "") => TryMoonWalkMove(callerMemberName, true);
         public void MoveNext([CallerMemberName] string callerMemberName = "") => MoveNext(callerMemberName, true);
 
         //PRIVATE MEMBERS & COMMANDS
@@ -246,7 +246,7 @@ namespace BrickWizard
                 }
             }
             return isMoonWalkNeeded;
-        }      
+        }
         private bool IsMoonWalkNeeded(string callerMemberName) => (callerMemberName != CurrentStep.ActionName);
         private bool TryMoveNextStep() => TryIterateStep(true);
         private bool TryMovePreviousStep() => TryIterateStep(false);
