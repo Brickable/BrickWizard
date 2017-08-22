@@ -6,10 +6,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using BrickWizard.ExtensionMethods;
+using System.Runtime.CompilerServices;
 
 namespace BrickWizard
 {
-    public abstract class Wizard<T> : IWizard<T> where T : WizardModelBaseClass, new()
+    public abstract class Wizard<T> where T : WizardModelBaseClass, new()
     {
         protected Wizard(string controllerName, string areaName = "", string[] frozenSteps = null)
         {
@@ -56,46 +57,37 @@ namespace BrickWizard
         protected abstract Map Map { get; }
 
         //PUBLIC MEMBERS
+        public bool IsStepAvailable(string stepActionName) => _steps.steps.Any(x => x.ActionName == stepActionName);
         public Route CurrentRoute => _map.CurrentRoute;
         public Steps CurrentRouteSteps => new Steps(_currentRouteSteps);
-        public Step CurrentStep => _steps.Current;
-        public bool IsStepAvailable(string stepActionName)=> _steps.steps.Any(x => x.ActionName == stepActionName);
+        public Step CurrentStep => _steps.Current;      
         public T Model { get; set; } = new T();
 
         //PUBLIC COMMANDS
-        public void Sync()=> Sync(new StackTrace().GetFrame(1).GetMethod().Name);
-        public void ForceCommit(params object[] objs)
+        public void Sync([CallerMemberName] string callerMemberName="")
         {
-            if (IsMoonWalkNeeded(new StackTrace().GetFrame(1).GetMethod().Name))
-            {                
-                foreach (var obj in objs ?? Enumerable.Empty<object>())
-                {
-                    var propertyInfo = typeof(T).GetProperties().First(x => x.PropertyType.FullName == obj.GetType().FullName);
-                    var property = typeof(T).GetProperty(propertyInfo.Name);
-                    property.SetValue(Model, obj);
-                }      
+            if (!TryMoonWalkMove(callerMemberName))
+            {
+                Next();
+            }
+            BaseModelSync();
+        }
+        public void Commit(params object[] objs)
+        {
+            foreach (var obj in objs ?? Enumerable.Empty<object>())
+            {
+                var propertyInfo = typeof(T).GetProperties().First(x => x.PropertyType.FullName == obj.GetType().FullName);
+                var property = typeof(T).GetProperty(propertyInfo.Name);
+                property.SetValue(Model, obj);
             }
         }
         public void Commit(T model)
         {
-            if (IsMoonWalkNeeded(new StackTrace().GetFrame(1).GetMethod().Name))
+            foreach (var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
             {
-                foreach(var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
-                {
-                    var m = model.GetType().GetProperty(i).GetValue(model,null);
-                    typeof(T).GetProperty(i).SetValue(Model, m);
-                }
+                var m = model.GetType().GetProperty(i).GetValue(model, null);
+                typeof(T).GetProperty(i).SetValue(Model, m);
             }
-        }
-        public void CommitAndSync(T model)
-        {
-            Commit(model);
-            Sync(new StackTrace().GetFrame(1).GetMethod().Name);
-        }
-        public void CommitAndSync(params object[] objs)
-        {
-            ForceCommit(objs);
-            Sync(new StackTrace().GetFrame(1).GetMethod().Name);
         }
         public void ClearUnusedSteps()
         {
@@ -117,41 +109,68 @@ namespace BrickWizard
                 }
             }
         }
-
-        //PRIVATE MEMBERS & COMMANDS
-        private void Sync(string callerMethodName)
+        public bool TryCommit([CallerMemberName] string callerMemberName = "", params object[] objs)
         {
-            if (!TryBackwardsMove(callerMethodName))
+            AssertIfCallerMemberNameIsValid(callerMemberName);
+            var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
+            if (!isMoonWalkNeeded)
             {
-                MoveNext();
-            }
-            BaseModelSync();
-        }
-        private bool TryMoveBackwards() => TryBackwardsMove(new StackTrace().GetFrame(1).GetMethod().Name);
-        private bool TryBackwardsMove(string callerMethodName)
-        {
-            var isMoonWalkNeeded = IsMoonWalkNeeded(callerMethodName);
-            if (IsMoonWalkNeeded(callerMethodName))
-            {
-                MoonWalkTill(callerMethodName);
+                foreach (var obj in objs ?? Enumerable.Empty<object>())
+                {
+                    var propertyInfo = typeof(T).GetProperties().First(x => x.PropertyType.FullName == obj.GetType().FullName);
+                    var property = typeof(T).GetProperty(propertyInfo.Name);
+                    property.SetValue(Model, obj);
+                }
             }
             return isMoonWalkNeeded;
         }
-        private bool IsMoonWalkNeeded(string callerMethodName) => (callerMethodName != CurrentStep.ActionName);
-        private bool TryMoveNextStep() => TryIterateStep(true);
-        private bool TryMovePreviousStep() => TryIterateStep(false);
-        private bool TryIterateStep(bool isToIncrement)
+        public bool TryCommit(T model, [CallerMemberName] string callerMemberName = "")
         {
-            Step active = (isToIncrement) ? NextStep : PreviousStep;
-            if (active == null)
+            AssertIfCallerMemberNameIsValid(callerMemberName);
+            var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
+            if (!isMoonWalkNeeded)
             {
-                return false;
+                foreach (var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
+                {
+                    var m = model.GetType().GetProperty(i).GetValue(model, null);
+                    typeof(T).GetProperty(i).SetValue(Model, m);
+                }
             }
-            _steps.CleanSteps();
-            active.Current = true;
-            return true;
+            return isMoonWalkNeeded;
+        }  
+        public bool TryCommitAndSync(T model, [CallerMemberName] string callerMemberName = "")
+        {
+            AssertIfCallerMemberNameIsValid(callerMemberName);
+            var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
+            if (!isMoonWalkNeeded)
+            {
+                Commit(model);
+            }
+            Sync(callerMemberName);
+            return isMoonWalkNeeded;
         }
-        private bool IsTriggerPointStep => CurrentStep.TriggerPointRule != null;
+        public bool TryCommitAndSync([CallerMemberName] string callerMemberName = "", params object[] objs)
+        {
+            AssertIfCallerMemberNameIsValid(callerMemberName);
+            var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
+            if (!isMoonWalkNeeded)
+            {
+                Commit(objs);
+            }
+            Sync(callerMemberName);
+            return isMoonWalkNeeded;
+        }     
+        public bool TryMoonWalking([CallerMemberName] string callerMemberName = "") => TryMoonWalkMove(callerMemberName,true);
+        public void MoveNext([CallerMemberName] string callerMemberName = "") => MoveNext(callerMemberName, true);
+
+        //PRIVATE MEMBERS & COMMANDS
+        private void AssertIfCallerMemberNameIsValid(string callerMemberName)
+        {
+            if (!IsCallerMemberNameValid(callerMemberName))
+            {
+                throw new ArgumentException($"callerMemberName argument with value {callerMemberName} passed in Sync Method is not valid.");
+            }
+        }
         private void CleanRoutes() => _map.Routes.ForEach(x => x.Current = false);
         private void SetCoordinatesAt(int routeId, string actionName)
         {
@@ -173,7 +192,7 @@ namespace BrickWizard
             SetCoordinatesAt(routeId, CurrentStep.ActionName);
             TryMoveNextStep();
         }
-        private void MoveNext()
+        private void Next()
         {
             if (!IsTriggerPointStep)
             {
@@ -182,6 +201,15 @@ namespace BrickWizard
             else
             {
                 FollowTheRoute(CurrentStep.TriggerPointRule.Invoke());
+            }
+        }
+        private void MoveNext(string callerMemberName, bool syncBaseModel = false)
+        {
+            AssertIfCallerMemberNameIsValid(callerMemberName);
+            Next();
+            if (syncBaseModel)
+            {
+                BaseModelSync();
             }
         }
         private void BaseModelSync()
@@ -201,6 +229,39 @@ namespace BrickWizard
                     break;
             }
         }
+        private bool IsCallerMemberNameValid(string callerMemberName)
+        {
+            return _steps.steps.Any(x => x.ActionName == callerMemberName);
+        }
+        private bool TryMoonWalkMove([CallerMemberName] string callerMemberName = "", bool syncBaseModel = false)
+        {
+            AssertIfCallerMemberNameIsValid(callerMemberName);
+            var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
+            if (isMoonWalkNeeded)
+            {
+                MoonWalkTill(callerMemberName);
+                if (syncBaseModel)
+                {
+                    BaseModelSync();
+                }
+            }
+            return isMoonWalkNeeded;
+        }      
+        private bool IsMoonWalkNeeded(string callerMemberName) => (callerMemberName != CurrentStep.ActionName);
+        private bool TryMoveNextStep() => TryIterateStep(true);
+        private bool TryMovePreviousStep() => TryIterateStep(false);
+        private bool TryIterateStep(bool isToIncrement)
+        {
+            Step active = (isToIncrement) ? NextStep : PreviousStep;
+            if (active == null)
+            {
+                return false;
+            }
+            _steps.CleanSteps();
+            active.Current = true;
+            return true;
+        }
+        private bool IsTriggerPointStep => CurrentStep.TriggerPointRule != null;
         private int GetNavBarStatingPointIndex()
         {
             var currentStep = CurrentRoute.RouteSteps.FirstOrDefault(x => x.ActionName == CurrentStep.ActionName);
