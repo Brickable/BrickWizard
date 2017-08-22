@@ -226,7 +226,9 @@ namespace BrickWizard
             while (CurrentStep.ActionName != methodName)
             {
                 if (!TryMovePreviousStep())
+                {
                     break;
+                }     
             }
         }
         private bool IsCallerMemberNameValid(string callerMemberName)
