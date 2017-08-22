@@ -53,16 +53,7 @@ namespace BrickWizard
         //OVERRIDABLE MEMBERS
         protected abstract Steps Steps { get; }
         protected abstract Map Map { get; }
-        protected virtual int MaxTabs { get; } = 5;
-        protected virtual void BaseModelSync()
-        {
-            this.Model.NavBar = GetNavBar();
-            this.Model.ActionName = CurrentStep.ActionName;
-            this.Model.CurrentRouteId = CurrentRoute.RouteId;
-            this.Model.PreviousStepActionName = PreviousStep?.ActionName;
-            this.Model.ControllerName = _controllerName;
-            this.Model.AreaName = _areaName;
-        }
+        protected virtual int MaxTabs { get; } = 5;    
 
         //PUBLIC MEMBERS
         public Route CurrentRoute => _map.CurrentRoute;
@@ -81,7 +72,7 @@ namespace BrickWizard
             Commit(callerMethodName, model);
             Sync(callerMethodName);
         }
-        public void CommitAndSync(params object[] objs)
+        public void ForceCommitAndSync(params object[] objs)
         {
             var callerMethodName = new StackTrace().GetFrame(1).GetMethod().Name;
             ForceCommit(callerMethodName, objs);
@@ -206,6 +197,15 @@ namespace BrickWizard
                     break;
                 } 
             }
+        }
+        private void BaseModelSync()
+        {
+            this.Model.NavBar = GetNavBar();
+            this.Model.ActionName = CurrentStep.ActionName;
+            this.Model.CurrentRouteId = CurrentRoute.RouteId;
+            this.Model.PreviousStepActionName = PreviousStep?.ActionName;
+            this.Model.ControllerName = _controllerName;
+            this.Model.AreaName = _areaName;
         }
         private int GetNavBarStatingPointIndex()
         {

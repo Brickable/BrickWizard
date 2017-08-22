@@ -41,6 +41,6 @@ namespace BrickWizard
         public string ViewName { get; set; }
 
         public IEnumerable<string> PropertiesToBind { get; set; }
-        public Func<int> TriggerPointRule;
+        public Func<int> TriggerPointRule { get; set; }
     }
 }
