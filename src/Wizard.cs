@@ -9,7 +9,7 @@ using BrickWizard.ExtensionMethods;
 
 namespace BrickWizard
 {
-    public abstract class Wizard<T> : IWizard<T> where T : WizardModelBaseClass, new()
+    public abstract class Wizard<T> where T : WizardModelBaseClass, new()
     {
         protected Wizard(string controllerName, string areaName = "", string[] frozenSteps = null)
         {
@@ -51,9 +51,18 @@ namespace BrickWizard
         }
 
         //OVERRIDABLE MEMBERS
-        protected virtual int MaxTabs { get; } = 5;
         protected abstract Steps Steps { get; }
         protected abstract Map Map { get; }
+        protected virtual int MaxTabs { get; } = 5;
+        protected virtual void BaseModelSync()
+        {
+            this.Model.NavBar = GetNavBar();
+            this.Model.ActionName = CurrentStep.ActionName;
+            this.Model.CurrentRouteId = CurrentRoute.RouteId;
+            this.Model.PreviousStepActionName = PreviousStep?.ActionName;
+            this.Model.ControllerName = _controllerName;
+            this.Model.AreaName = _areaName;
+        }
 
         //PUBLIC MEMBERS
         public Route CurrentRoute => _map.CurrentRoute;
@@ -63,39 +72,20 @@ namespace BrickWizard
         public T Model { get; set; } = new T();
 
         //PUBLIC COMMANDS
-        public void Sync()=> Sync(new StackTrace().GetFrame(1).GetMethod().Name);
-        public void ForceCommit(params object[] objs)
-        {
-            if (IsMoonWalkNeeded(new StackTrace().GetFrame(1).GetMethod().Name))
-            {                
-                foreach (var obj in objs ?? Enumerable.Empty<object>())
-                {
-                    var propertyInfo = typeof(T).GetProperties().First(x => x.PropertyType.FullName == obj.GetType().FullName);
-                    var property = typeof(T).GetProperty(propertyInfo.Name);
-                    property.SetValue(Model, obj);
-                }      
-            }
-        }
-        public void Commit(T model)
-        {
-            if (IsMoonWalkNeeded(new StackTrace().GetFrame(1).GetMethod().Name))
-            {
-                foreach(var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
-                {
-                    var m = model.GetType().GetProperty(i).GetValue(model,null);
-                    typeof(T).GetProperty(i).SetValue(Model, m);
-                }
-            }
-        }
+        public void Sync() => Sync(new StackTrace().GetFrame(1).GetMethod().Name);
+        public void ForceCommit(params object[] objs) => ForceCommit(new StackTrace().GetFrame(1).GetMethod().Name, objs);
+        public void Commit(T model) => Commit(new StackTrace().GetFrame(1).GetMethod().Name, model);     
         public void CommitAndSync(T model)
         {
-            Commit(model);
-            Sync(new StackTrace().GetFrame(1).GetMethod().Name);
+            var callerMethodName = new StackTrace().GetFrame(1).GetMethod().Name;
+            Commit(callerMethodName, model);
+            Sync(callerMethodName);
         }
         public void CommitAndSync(params object[] objs)
         {
-            ForceCommit(objs);
-            Sync(new StackTrace().GetFrame(1).GetMethod().Name);
+            var callerMethodName = new StackTrace().GetFrame(1).GetMethod().Name;
+            ForceCommit(callerMethodName, objs);
+            Sync(callerMethodName);
         }
         public void ClearUnusedSteps()
         {
@@ -127,11 +117,34 @@ namespace BrickWizard
             }
             BaseModelSync();
         }
+        private void ForceCommit(string callerMethodName, params object[] objs)
+        {
+            if (!IsMoonWalkNeeded(callerMethodName))
+            {
+                foreach (var obj in objs ?? Enumerable.Empty<object>())
+                {
+                    var propertyInfo = typeof(T).GetProperties().First(x => x.PropertyType.FullName == obj.GetType().FullName);
+                    var property = typeof(T).GetProperty(propertyInfo.Name);
+                    property.SetValue(Model, obj);
+                }
+            }
+        }
+        private void Commit(string callerMethodName, T model)
+        {
+            if (!IsMoonWalkNeeded(callerMethodName))
+            {
+                foreach (var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
+                {
+                    var m = model.GetType().GetProperty(i).GetValue(model, null);
+                    typeof(T).GetProperty(i).SetValue(Model, m);
+                }
+            }
+        }
         private bool TryMoveBackwards() => TryBackwardsMove(new StackTrace().GetFrame(1).GetMethod().Name);
         private bool TryBackwardsMove(string callerMethodName)
         {
             var isMoonWalkNeeded = IsMoonWalkNeeded(callerMethodName);
-            if (IsMoonWalkNeeded(callerMethodName))
+            if (isMoonWalkNeeded)
             {
                 MoonWalkTill(callerMethodName);
             }
@@ -184,21 +197,14 @@ namespace BrickWizard
                 FollowTheRoute(CurrentStep.TriggerPointRule.Invoke());
             }
         }
-        private void BaseModelSync()
-        {
-            this.Model.NavBar = GetNavBar();
-            this.Model.ActionName = CurrentStep.ActionName;
-            this.Model.CurrentRouteId = CurrentRoute.RouteId;
-            this.Model.PreviousStepActionName = PreviousStep?.ActionName;
-            this.Model.ControllerName = _controllerName;
-            this.Model.AreaName = _areaName;
-        }
         private void MoonWalkTill(string methodName)
         {
             while (CurrentStep.ActionName != methodName)
             {
                 if (!TryMovePreviousStep())
+                {
                     break;
+                } 
             }
         }
         private int GetNavBarStatingPointIndex()
