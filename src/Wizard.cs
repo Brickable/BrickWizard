@@ -52,9 +52,9 @@ namespace BrickWizard
         }
 
         //OVERRIDABLE MEMBERS
-        protected virtual int MaxTabs { get; } = 5;
         protected abstract Steps Steps { get; }
         protected abstract Map Map { get; }
+        protected virtual int MaxTabs { get; } = 5;    
 
         //PUBLIC MEMBERS
         public bool IsStepAvailable(string stepActionName) => _steps.steps.Any(x => x.ActionName == stepActionName);
@@ -88,6 +88,13 @@ namespace BrickWizard
                 var m = model.GetType().GetProperty(i).GetValue(model, null);
                 typeof(T).GetProperty(i).SetValue(Model, m);
             }
+        }
+        public void Sync() => Sync(new StackTrace().GetFrame(1).GetMethod().Name);    
+        public void CommitAndSync(T model)
+        {
+            var callerMethodName = new StackTrace().GetFrame(1).GetMethod().Name;
+            Commit(callerMethodName, model);
+            Sync(callerMethodName);
         }
         public void ClearUnusedSteps()
         {
@@ -128,8 +135,9 @@ namespace BrickWizard
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
             var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
-            if (!isMoonWalkNeeded)
+            if (!isMoonWalkNeeded)      
             {
+
                 foreach (var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
                 {
                     var m = model.GetType().GetProperty(i).GetValue(model, null);
@@ -137,7 +145,9 @@ namespace BrickWizard
                 }
             }
             return isMoonWalkNeeded;
-        }  
+        }
+
+
         public bool TryCommitAndSync(T model, [CallerMemberName] string callerMemberName = "")
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
@@ -212,6 +222,7 @@ namespace BrickWizard
                 BaseModelSync();
             }
         }
+
         private void BaseModelSync()
         {
             this.Model.NavBar = GetNavBar();
@@ -262,6 +273,7 @@ namespace BrickWizard
             return true;
         }
         private bool IsTriggerPointStep => CurrentStep.TriggerPointRule != null;
+
         private int GetNavBarStatingPointIndex()
         {
             var currentStep = CurrentRoute.RouteSteps.FirstOrDefault(x => x.ActionName == CurrentStep.ActionName);
