@@ -30,7 +30,7 @@ namespace BrickWizard
             BaseModelSync();
         }
 
-        
+
         //PRIVATE FIELDS
         private string _controllerName { get; }
         private string _areaName { get; }
@@ -52,19 +52,19 @@ namespace BrickWizard
         }
 
         //OVERRIDABLE MEMBERS
+        protected virtual int MaxTabs { get; } = 5;
         protected abstract Steps Steps { get; }
         protected abstract Map Map { get; }
-        protected virtual int MaxTabs { get; } = 5;    
 
         //PUBLIC MEMBERS
         public bool IsStepAvailable(string stepActionName) => _steps.steps.Any(x => x.ActionName == stepActionName);
         public Route CurrentRoute => _map.CurrentRoute;
         public Steps CurrentRouteSteps => new Steps(_currentRouteSteps);
-        public Step CurrentStep => _steps.Current;      
+        public Step CurrentStep => _steps.Current;
         public T Model { get; set; } = new T();
 
         //PUBLIC COMMANDS
-        public void Sync([CallerMemberName] string callerMemberName="")
+        public void Sync([CallerMemberName] string callerMemberName = "")
         {
             if (!TryMoonWalkMove(callerMemberName))
             {
@@ -88,13 +88,6 @@ namespace BrickWizard
                 var m = model.GetType().GetProperty(i).GetValue(model, null);
                 typeof(T).GetProperty(i).SetValue(Model, m);
             }
-        }
-        public void Sync() => Sync(new StackTrace().GetFrame(1).GetMethod().Name);    
-        public void CommitAndSync(T model)
-        {
-            var callerMethodName = new StackTrace().GetFrame(1).GetMethod().Name;
-            Commit(callerMethodName, model);
-            Sync(callerMethodName);
         }
         public void ClearUnusedSteps()
         {
@@ -135,9 +128,8 @@ namespace BrickWizard
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
             var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
-            if (!isMoonWalkNeeded)      
+            if (!isMoonWalkNeeded)
             {
-
                 foreach (var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
                 {
                     var m = model.GetType().GetProperty(i).GetValue(model, null);
@@ -146,8 +138,6 @@ namespace BrickWizard
             }
             return isMoonWalkNeeded;
         }
-
-
         public bool TryCommitAndSync(T model, [CallerMemberName] string callerMemberName = "")
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
@@ -169,8 +159,8 @@ namespace BrickWizard
             }
             Sync(callerMemberName);
             return isMoonWalkNeeded;
-        }     
-        public bool TryMoonWalking([CallerMemberName] string callerMemberName = "") => TryMoonWalkMove(callerMemberName,true);
+        }
+        public bool TryMoonWalking([CallerMemberName] string callerMemberName = "") => TryMoonWalkMove(callerMemberName, true);
         public void MoveNext([CallerMemberName] string callerMemberName = "") => MoveNext(callerMemberName, true);
 
         //PRIVATE MEMBERS & COMMANDS
@@ -222,7 +212,6 @@ namespace BrickWizard
                 BaseModelSync();
             }
         }
-
         private void BaseModelSync()
         {
             this.Model.NavBar = GetNavBar();
@@ -257,7 +246,7 @@ namespace BrickWizard
                 }
             }
             return isMoonWalkNeeded;
-        }      
+        }
         private bool IsMoonWalkNeeded(string callerMemberName) => (callerMemberName != CurrentStep.ActionName);
         private bool TryMoveNextStep() => TryIterateStep(true);
         private bool TryMovePreviousStep() => TryIterateStep(false);
@@ -273,7 +262,6 @@ namespace BrickWizard
             return true;
         }
         private bool IsTriggerPointStep => CurrentStep.TriggerPointRule != null;
-
         private int GetNavBarStatingPointIndex()
         {
             var currentStep = CurrentRoute.RouteSteps.FirstOrDefault(x => x.ActionName == CurrentStep.ActionName);
