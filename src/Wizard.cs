@@ -30,7 +30,6 @@ namespace BrickWizard
             BaseModelSync();
         }
 
-
         //PRIVATE FIELDS
         private string _controllerName { get; }
         private string _areaName { get; }
@@ -58,6 +57,11 @@ namespace BrickWizard
 
         //PUBLIC MEMBERS
         public bool IsStepAvailable(string stepActionName) => _steps.steps.Any(x => x.ActionName == stepActionName);
+        public bool IsMoonWalkNeeded([CallerMemberName] string callerMemberName = "")
+        {
+            AssertIfCallerMemberNameIsValid(callerMemberName);
+            return (callerMemberName != CurrentStep.ActionName);
+        }
         public Route CurrentRoute => _map.CurrentRoute;
         public Steps CurrentRouteSteps => new Steps(_currentRouteSteps);
         public Step CurrentStep => _steps.Current;
@@ -97,10 +101,17 @@ namespace BrickWizard
         /// <param name="model">Collection of Objects to be bind with T Model</param>
         public void Commit(T model)
         {
-            foreach (var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
+            if(CurrentStep.PropertiesToBind == null || !CurrentStep.PropertiesToBind.Any())
             {
-                var m = model.GetType().GetProperty(i).GetValue(model, null);
-                typeof(T).GetProperty(i).SetValue(Model, m);
+                this.Model = model;
+            }
+            else
+            {
+                foreach (var i in CurrentStep.PropertiesToBind)
+                {
+                    var m = model.GetType().GetProperty(i).GetValue(model, null);
+                    typeof(T).GetProperty(i).SetValue(Model, m);
+                }
             }
         }
         /// <summary>
@@ -134,16 +145,10 @@ namespace BrickWizard
         /// <param name="objs">Collection of Objects to be bind with T Model</param>
         public bool TryCommit([CallerMemberName] string callerMemberName = "", params object[] objs)
         {
-            AssertIfCallerMemberNameIsValid(callerMemberName);
             var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
             if (!isMoonWalkNeeded)
             {
-                foreach (var obj in objs ?? Enumerable.Empty<object>())
-                {
-                    var propertyInfo = typeof(T).GetProperties().First(x => x.PropertyType.FullName == obj.GetType().FullName);
-                    var property = typeof(T).GetProperty(propertyInfo.Name);
-                    property.SetValue(Model, obj);
-                }
+                Commit(objs);
             }
             return isMoonWalkNeeded;
         }
@@ -155,15 +160,10 @@ namespace BrickWizard
         /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public bool TryCommit(T model, [CallerMemberName] string callerMemberName = "")
         {
-            AssertIfCallerMemberNameIsValid(callerMemberName);
             var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
             if (!isMoonWalkNeeded)
             {
-                foreach (var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
-                {
-                    var m = model.GetType().GetProperty(i).GetValue(model, null);
-                    typeof(T).GetProperty(i).SetValue(Model, m);
-                }
+                Commit(model);
             }
             return isMoonWalkNeeded;
         }
@@ -174,7 +174,6 @@ namespace BrickWizard
         /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public bool TryCommitAndSync(T model, [CallerMemberName] string callerMemberName = "")
         {
-            AssertIfCallerMemberNameIsValid(callerMemberName);
             var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
             if (!isMoonWalkNeeded)
             {
@@ -190,7 +189,6 @@ namespace BrickWizard
         /// <param name="objs">Collection of Objects to be bind with T Model</param>
         public bool TryCommitAndSync([CallerMemberName] string callerMemberName = "", params object[] objs)
         {
-            AssertIfCallerMemberNameIsValid(callerMemberName);
             var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
             if (!isMoonWalkNeeded)
             {
@@ -284,7 +282,6 @@ namespace BrickWizard
         }
         private bool TryMoonWalkMove([CallerMemberName] string callerMemberName = "", bool syncBaseModel = false)
         {
-            AssertIfCallerMemberNameIsValid(callerMemberName);
             var isMoonWalkNeeded = IsMoonWalkNeeded(callerMemberName);
             if (isMoonWalkNeeded)
             {
@@ -296,7 +293,6 @@ namespace BrickWizard
             }
             return isMoonWalkNeeded;
         }
-        private bool IsMoonWalkNeeded(string callerMemberName) => (callerMemberName != CurrentStep.ActionName);
         private bool TryMoveNextStep() => TryIterateStep(true);
         private bool TryMovePreviousStep() => TryIterateStep(false);
         private bool TryIterateStep(bool isToIncrement)
@@ -320,7 +316,7 @@ namespace BrickWizard
             var lastStepIndex = CurrentRoute.RouteSteps.IndexOf(lastStep);
             var middleIndex = Convert.ToInt16(MaxTabs / 2) + 1;
 
-            //Navbar has 3 behaviors: {GoingTowardsMiddle, Rolling, GoingTowardsEnd}
+            //Navbar has 3 behaviors: (GoingTowardsMiddle, Rolling, GoingTowardsEnd)
             var GoingTowardsEnd = currentStepIndex + middleIndex > lastStepIndex;
             var GoingTowardsMiddle = currentStepIndex < middleIndex;
 

@@ -14,6 +14,11 @@ namespace BrickWizard
             RunStepNumberGenerator();
         }
 
+        public int RouteId { get; set; }
+        public int Lenght => RouteSteps.Count;
+        internal bool Current { get; set; }
+        internal List<StepReference> RouteSteps { get; }
+
         private void RunStepNumberGenerator()
         {
             foreach (var i in RouteSteps)
@@ -21,10 +26,5 @@ namespace BrickWizard
                 i.StepNumber = RouteSteps.IndexOf(i) + 1;
             }
         }
-
-        public int RouteId { get; set; }
-        internal bool Current { get; set; }
-        internal List<StepReference> RouteSteps { get; }
-        public int Lenght => RouteSteps.Count();
     }
 }
