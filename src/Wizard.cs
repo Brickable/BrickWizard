@@ -64,6 +64,11 @@ namespace BrickWizard
         public T Model { get; set; } = new T();
 
         //PUBLIC COMMANDS
+        /// <summary>
+        /// Based on caller, on data in T Model and initial instance configuration declaratons of the wizard instance, 
+        /// Sync Command will reason if needs to step n steps back, move to the next step or change to another route available.
+        /// </summary>
+        /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public void Sync([CallerMemberName] string callerMemberName = "")
         {
             if (!TryMoonWalkMove(callerMemberName))
@@ -72,6 +77,10 @@ namespace BrickWizard
             }
             BaseModelSync();
         }
+        /// <summary>
+        /// Bind the passed param objects To the T Model Object of Wizard instance
+        /// </summary>
+        /// <param name="objs">Collection of Objects to be bind with T Model</param>
         public void Commit(params object[] objs)
         {
             foreach (var obj in objs ?? Enumerable.Empty<object>())
@@ -81,6 +90,11 @@ namespace BrickWizard
                 property.SetValue(Model, obj);
             }
         }
+        /// <summary>
+        /// Bind entire T Model Object of Wizard instance if the current Step has no PropertiesToBind.
+        /// Otherwise bind just the properties setted on current step CurrentStep.PropertiesToBind.
+        /// </summary>
+        /// <param name="model">Collection of Objects to be bind with T Model</param>
         public void Commit(T model)
         {
             foreach (var i in CurrentStep.PropertiesToBind ?? Enumerable.Empty<string>())
@@ -89,6 +103,10 @@ namespace BrickWizard
                 typeof(T).GetProperty(i).SetValue(Model, m);
             }
         }
+        /// <summary>
+        /// Clear all properties of T Model that not attached in the steps of current route 
+        /// (setted on definition of the specialized class, IEnumerable<string> propertyNamesToBind from step constructor)
+        /// </summary>
         public void ClearUnusedSteps()
         {
             foreach (var step in _steps.steps)
@@ -109,6 +127,11 @@ namespace BrickWizard
                 }
             }
         }
+        /// <summary>
+        /// After checking that MoonWalking is not needed, Bind the passed param objects To the T Model Object of Wizard instance.
+        /// </summary>
+        /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
+        /// <param name="objs">Collection of Objects to be bind with T Model</param>
         public bool TryCommit([CallerMemberName] string callerMemberName = "", params object[] objs)
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
@@ -124,6 +147,12 @@ namespace BrickWizard
             }
             return isMoonWalkNeeded;
         }
+        /// <summary>
+        /// After checking that MoonWalking is not needed, Bind entire T Model Object of Wizard instance if the current Step has no PropertiesToBind.
+        /// Otherwise bind just the properties setted on current step CurrentStep.PropertiesToBind.
+        /// </summary>
+        /// <param name="model">Collection of Objects to be bind with T Model</param>
+        /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public bool TryCommit(T model, [CallerMemberName] string callerMemberName = "")
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
@@ -138,6 +167,11 @@ namespace BrickWizard
             }
             return isMoonWalkNeeded;
         }
+        /// <summary>
+        /// Execute TryCommit and Sync commands 
+        /// </summary>
+        /// <param name="model">Collection of Objects to be bind with T Model</param>
+        /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public bool TryCommitAndSync(T model, [CallerMemberName] string callerMemberName = "")
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
@@ -149,6 +183,11 @@ namespace BrickWizard
             Sync(callerMemberName);
             return isMoonWalkNeeded;
         }
+        /// <summary>
+        /// Execute TryCommit and Sync commands
+        /// </summary>
+        /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
+        /// <param name="objs">Collection of Objects to be bind with T Model</param>
         public bool TryCommitAndSync([CallerMemberName] string callerMemberName = "", params object[] objs)
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
@@ -160,7 +199,15 @@ namespace BrickWizard
             Sync(callerMemberName);
             return isMoonWalkNeeded;
         }
+        /// <summary>
+        /// Try to Go back N steps until current step action name is equal to callerMemberName
+        /// </summary>
+        /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public bool TryMoonWalking([CallerMemberName] string callerMemberName = "") => TryMoonWalkMove(callerMemberName, true);
+        /// <summary>
+        /// Based on definition of wizard specialization class decide if move to the next step or jump to another route
+        /// </summary>
+        /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public void MoveNext([CallerMemberName] string callerMemberName = "") => MoveNext(callerMemberName, true);
 
         //PRIVATE MEMBERS & COMMANDS
