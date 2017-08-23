@@ -51,20 +51,46 @@ namespace BrickWizard
         }
 
         //OVERRIDABLE MEMBERS
+        /// <summary>
+        /// Property that define the max number of tabs to render on wizard nav bar
+        /// </summary>
         protected virtual int MaxTabs { get; } = 5;
+        /// <summary>
+        /// Abstract property to be setted on specialized class definition.
+        /// Property will define all steps of the wizard, its properties, properties to bind on commit for each step and trigger points of each step.
+        /// </summary>
         protected abstract Steps Steps { get; }
+        /// <summary>
+        /// Abstract property to be setted on specialized class definition.
+        /// Property will define all routes available in wizard and the steps for each route.
+        /// </summary>
         protected abstract Map Map { get; }
 
         //PUBLIC MEMBERS
-        public bool IsStepAvailable(string stepActionName) => _steps.steps.Any(x => x.ActionName == stepActionName);
+        /// <summary>
+        /// Check if the step is not Frozen. frozen steps are defined on instatiation stage and they are not available for its lifetime.
+        /// </summary>
+        public bool IsStepAvailable(string stepActionName) => _steps.steps.Any(x => x.ActionName == stepActionName);       
+        /// <summary>
+        /// Based on callerMemberName and current step method infere if the sync will procceed with next step or moonwalk n steps
+        /// </summary>
+        /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public bool IsMoonWalkNeeded([CallerMemberName] string callerMemberName = "")
         {
             AssertIfCallerMemberNameIsValid(callerMemberName);
             return (callerMemberName != CurrentStep.ActionName);
         }
+        /// <summary>
+        /// Read Property that retrieve the current route
+        /// </summary>
         public Route CurrentRoute => _map.CurrentRoute;
-        public Steps CurrentRouteSteps => new Steps(_currentRouteSteps);
+        /// <summary>
+        /// Read Property that retrieve the current step
+        /// </summary>
         public Step CurrentStep => _steps.Current;
+        /// <summary>
+        /// Generic Model of the specialized wizard classes.
+        /// </summary>
         public T Model { get; set; } = new T();
 
         //PUBLIC COMMANDS
@@ -98,7 +124,7 @@ namespace BrickWizard
         /// Bind entire T Model Object of Wizard instance if the current Step has no PropertiesToBind.
         /// Otherwise bind just the properties setted on current step CurrentStep.PropertiesToBind.
         /// </summary>
-        /// <param name="model">Collection of Objects to be bind with T Model</param>
+        /// <param name="model">T object to be bind with T Model</param>
         public void Commit(T model)
         {
             if(CurrentStep.PropertiesToBind == null || !CurrentStep.PropertiesToBind.Any())
@@ -115,8 +141,7 @@ namespace BrickWizard
             }
         }
         /// <summary>
-        /// Clear all properties of T Model that not attached in the steps of current route 
-        /// (setted on definition of the specialized class, IEnumerable<string> propertyNamesToBind from step constructor)
+        /// Clear all properties of T Model that not attached in the steps of current route from propertyNamesToBind at step constructor.
         /// </summary>
         public void ClearUnusedSteps()
         {
@@ -156,7 +181,7 @@ namespace BrickWizard
         /// After checking that MoonWalking is not needed, Bind entire T Model Object of Wizard instance if the current Step has no PropertiesToBind.
         /// Otherwise bind just the properties setted on current step CurrentStep.PropertiesToBind.
         /// </summary>
-        /// <param name="model">Collection of Objects to be bind with T Model</param>
+        /// <param name="model">T object to be bind with T Model</param>
         /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public bool TryCommit(T model, [CallerMemberName] string callerMemberName = "")
         {
@@ -170,7 +195,7 @@ namespace BrickWizard
         /// <summary>
         /// Execute TryCommit and Sync commands 
         /// </summary>
-        /// <param name="model">Collection of Objects to be bind with T Model</param>
+        /// <param name="model">T object to be bind with T Model</param>
         /// <param name="callerMemberName">By convention if you dont pass it will be filled with the name of this method </param>
         public bool TryCommitAndSync(T model, [CallerMemberName] string callerMemberName = "")
         {
